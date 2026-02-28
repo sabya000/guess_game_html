@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Guess the Number</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --panel: #12121a;
+      --border: #2a2a40;
+      --accent: #ab6389;
+      --accent2: #ff3e6c;
+      --warn: #ffcc00;
+      --text: #e0e0f0;
+      --muted: #c5c5d6;
+      --glow: 0 0 12px rgba(0,245,196,0.5);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(0,245,196,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(255,62,108,0.04) 0%, transparent 60%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      line-height: 1.2;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .attempts-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    #attempts-count {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      text-shadow: var(--glow);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="number"] {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      padding: 14px 18px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+      text-align: center;
+      letter-spacing: 0.1em;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+
+    button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 14px 20px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+    button:hover { box-shadow: var(--glow); transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .message-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      transition: border-color 0.3s;
+    }
+    .message-box.hint-low  { border-color: #3399ff; color: #66bbff; }
+    .message-box.hint-high { border-color: #ff6633; color: #ff9966; }
+    .message-box.win       { border-color: var(--accent); color: var(--accent); text-shadow: var(--glow); }
+    .message-box.default   { color: var(--muted); }
+
+    .history-section { }
+
+    .history-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 36px;
+    }
+
+    .chip {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 12px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      animation: popIn 0.25s ease;
+    }
+    .chip.low  { border-color: #3366aa; color: #66aaff; }
+    .chip.high { border-color: #aa4422; color: #ff8866; }
+    .chip.win  { border-color: var(--accent); color: var(--accent); box-shadow: var(--glow); }
+
+    @keyframes popIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .new-game-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      margin-top: 20px;
+      width: 100%;
+    }
+    .new-game-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      box-shadow: 0 0 10px rgba(255,62,108,0.3);
+    }
+
+    .range-indicator {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+      padding: 0 2px;
+    }
+    .range-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    #range-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      width: 100%;
+      transform-origin: left;
+      transition: transform 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎯 GUESS THE NUMBER</h1>
+    <p>Pick a number between 1 and 100</p>
+  </div>
+
+  <div class="attempts-bar">
+    <span>ATTEMPTS</span>
+    <span id="attempts-count">0</span>
+    <span>SESSION ONLY</span>
+  </div>
+
+  <div class="range-indicator">
+    <span id="range-low">1</span>
+    <span id="range-high">100</span>
+  </div>
+  <div class="range-track"><div id="range-fill"></div></div>
+
+  <div class="input-row">
+    <input type="number" id="guess-input" min="1" max="100" placeholder="???" autocomplete="off"/>
+    <button id="guess-btn" onclick="makeGuess()">GUESS</button>
+  </div>
+
+  <div class="message-box default" id="message-box">
+    Enter your first guess above ↑
+  </div>
+
+  <div class="history-section">
+    <div class="history-label">
+      <span>GUESS HISTORY</span>
+      <span id="history-count">0 guesses</span>
+    </div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <button class="new-game-btn" onclick="newGame()">↺ NEW GAME</button>
+</div>
+
+<script>
+  // --- State ---
+  // Session-only: uses sessionStorage so refresh = new game
+  function loadState() {
+    try {
+      const raw = sessionStorage.getItem('guessGame');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  function saveState(state) {
+    sessionStorage.setItem('guessGame', JSON.stringify(state));
+  }
+
+  let state;
+
+  function initState() {
+    state = {
+      secret: Math.floor(Math.random() * 100) + 1,
+      guesses: [],
+      won: false,
+      low: 1,
+      high: 100
+    };
+    saveState(state);
+  }
+
+  // On load: always start fresh (sessionStorage clears on tab close, but stays on same session)
+  // Per requirement: refresh = disappear → use a "page load" flag
+  // Each page load gets a fresh game
+  (function init() {
+    // Always start fresh on page load
+    initState();
+    render();
+  })();
+
+  function makeGuess() {
+    if (state.won) return;
+    const input = document.getElementById('guess-input');
+    const val = parseInt(input.value);
+    if (isNaN(val) || val < 1 || val > 100) {
+      flashMessage('⚠ Enter a number between 1 and 100', 'default');
+      return;
+    }
+    if (state.guesses.includes(val)) {
+      flashMessage(`You already tried ${val}!`, 'default');
+      return;
+    }
+
+    state.guesses.push(val);
+
+    if (val === state.secret) {
+      state.won = true;
+    } else if (val < state.secret) {
+      if (val > state.low) state.low = val;
+    } else {
+      if (val < state.high) state.high = val;
+    }
+
+    saveState(state);
+    render();
+    input.value = '';
+    input.focus();
+  }
+
+  function render() {
+    const guesses = state.guesses;
+    const last = guesses[guesses.length - 1];
+
+    // Message
+    const box = document.getElementById('message-box');
+    box.className = 'message-box';
+    if (!guesses.length) {
+      box.textContent = 'Enter your first guess above ↑';
+      box.classList.add('default');
+    } else if (state.won) {
+      box.textContent = `🎉 Correct! The number was ${state.secret}. You got it in ${guesses.length} guess${guesses.length>1?'es':''}!`;
+      box.classList.add('win');
+      document.getElementById('guess-btn').disabled = true;
+    } else if (last < state.secret) {
+      box.textContent = `📈 ${last} is too LOW — go higher!`;
+      box.classList.add('hint-low');
+    } else {
+      box.textContent = `📉 ${last} is too HIGH — go lower!`;
+      box.classList.add('hint-high');
+    }
+
+    // Attempts
+    document.getElementById('attempts-count').textContent = guesses.length;
+    document.getElementById('history-count').textContent = `${guesses.length} guess${guesses.length!==1?'es':''}`;
+
+    // History chips
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    [...guesses].reverse().forEach(g => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      if (g === state.secret) chip.classList.add('win');
+      else if (g < state.secret) chip.classList.add('low');
+      else chip.classList.add('high');
+      chip.textContent = g;
+      list.appendChild(chip);
+    });
+
+    // Range
+    document.getElementById('range-low').textContent = state.low;
+    document.getElementById('range-high').textContent = state.high;
+    const fill = document.getElementById('range-fill');
+    const scaleX = (state.high - state.low) / 99;
+    const translateX = ((state.low - 1) / 99) * 100;
+    fill.style.transform = `translateX(${translateX}%) scaleX(${scaleX})`;
+  }
+
+  function flashMessage(text, type) {
+    const box = document.getElementById('message-box');
+    box.textContent = text;
+    box.className = 'message-box ' + type;
+  }
+
+  function newGame() {
+    document.getElementById('guess-btn').disabled = false;
+    document.getElementById('guess-input').value = '';
+    initState();
+    render();
+  }
+
+  // Allow Enter key
+  document.getElementById('guess-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') makeGuess();
+  });
+</script>
+</body>
+</html>
